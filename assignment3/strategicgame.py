@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 from prettytable import PrettyTable
-from itertools import permutations
+from itertools import permutations, product
 '''An implementation of generic 2-player strategic games.
 
 '''
@@ -10,12 +10,11 @@ from itertools import permutations
 class StrategicGame:
 
     def __init__(self, matrix):
-        '''*matrix* is a two-dimensional array of pairs of numbers
+        """*matrix* is a two-dimensional array of pairs of numbers
            (primitive numerical types). It should be non-empty, and
            have at least row and one column. All subarrays of
-           *matrix* should have the same length.
+           *matrix* should have the same length."""
 
-        '''
         self.matrix = [[]]
         self.validate_matrix(matrix)
 
@@ -24,8 +23,6 @@ class StrategicGame:
 
         self.row_action_names = [str(elem) for elem in np.arange(0, self.n_action_rows)]
         self.col_action_names = [str(elem) for elem in np.arange(0, self.n_action_cols)]
-
-
 
     def validate_matrix(self, matrix):
         mat = np.array(matrix)
@@ -52,9 +49,17 @@ class StrategicGame:
         displayMatrix = PrettyTable()
         first_row = [""] + self.col_action_names
         displayMatrix.field_names = first_row
-        for row in range(0, self.n_action_rows):
-            row = [self.row_action_names[row]] + self.matrix[row]
+        for rowID in range(0, self.n_action_rows):
+            row = [self.row_action_names[rowID]]
+            for colID in range(0, self.n_action_cols):
+                isNE = (rowID,colID) in self.find_Nash_profiles()
+                isDS = (rowID,colID) in self.find_dominant_strategy_profiles()
+                if isNE or isDS:
+                    row.append(str(self.matrix[rowID][colID]) + " *")
+                else:
+                    row.append(self.matrix[rowID][colID])
             displayMatrix.add_row(row)
+
         return str(displayMatrix)
 
     def assign_row_actions_names(self, name_array):
@@ -75,6 +80,8 @@ class StrategicGame:
         else:
             raise Exception("You did not provide the correct number of action names.")
 
+# ____________________________ Dominance functions _____________________________________________________
+
     def strictlydominates(self, a1, a2):
         if len(a1) == len(a2):
             domCount = np.sum([elemA1 > elemA2 for elemA1, elemA2 in zip(a1,a2)])
@@ -84,6 +91,71 @@ class StrategicGame:
                 return False
         else:
             raise Exception("The 2 actions you are comparing are of different lenghts.")
+
+    def stronglydominates(self, a1, a2):
+        if len(a1) == len(a2):
+            strictdomCount = np.sum([elemA1 > elemA2 for elemA1, elemA2 in zip(a1,a2)])
+            strongdomCount = np.sum([elemA1 >= elemA2 for elemA1, elemA2 in zip(a1,a2)])
+            #Debugging print(len(a1) == domCount, a1, a2)
+            if len(a1) == strongdomCount and strictdomCount > 0:
+                return True
+            else:
+                return False
+        else:
+            raise Exception("The 2 actions you are comparing are of different lenghts.")
+
+    def find_strongly_dom_action(self, r_c=("R", "C")):
+        matrix = np.array(self.matrix)
+        dom_actions = []
+        if r_c == "R":
+            if self.n_action_rows == 1:
+                dom_actions.append(0)
+            else:
+                for combo in permutations(np.arange(0, self.n_action_rows), 2):
+                    if self.stronglydominates(matrix[combo[0],:,0], matrix[combo[1],:,0]):
+                        dom_actions.append(combo[0])
+        elif r_c == "C":
+            if self.n_action_cols == 1:
+                dom_actions.append(0)
+            else:
+                for combo in permutations(np.arange(0, self.n_action_cols), 2):
+                    if self.stronglydominates(matrix[:,combo[0],1], matrix[:,combo[1],1]):
+                        dom_actions.append(combo[0])
+        else:
+            raise Exception("You need to indicate either R or C to find strongly dominant actions for either rows or columns")
+        return dom_actions
+
+    def find_dominant_strategy_profiles(self):
+        # returns a list of dominant profiles as a list of row action/ column action ID pairs
+        # a profile is a dominant profile if every player's action is a (strongly) dominant strategy
+        dom_rows = self.find_strongly_dom_action("R")
+        dom_cols = self.find_strongly_dom_action("C")
+        all_combinations = [list(zip(each_permutation, dom_rows)) for each_permutation in permutations(dom_rows, len(dom_cols))]
+        domsp = [item for sublist in all_combinations for item in sublist]
+        return domsp
+
+# _______________ Code segments needed for showing remaining matrix after IESDS and IENBR ________________
+
+    def remainingMatrix(self, remaining_rows, remaining_cols):
+        matrix = []
+        for rowID in remaining_rows:
+            row = []
+            for colID in remaining_cols:
+                row.append(self.matrix[rowID][colID])
+            matrix.append(row)
+        return matrix
+
+    def getRemainingNames(self, remaining, r_c=("R", "C")):
+        names = []
+        if r_c == "R":
+            for id in remaining:
+                names.append(self.row_action_names[id])
+        else:
+            for id in remaining:
+                names.append(self.col_action_names[id])
+        return names
+
+# ___________________ Code segments for IESDS ___________________________________________________________
 
     def removeDominatedRowsCols(self, matrix, verbose=False):
         dominated_rows = []
@@ -108,25 +180,6 @@ class StrategicGame:
             matrix = np.delete(matrix, col, axis=1)
 
         return (matrix, dominated_rows, dominated_cols)
-
-    def remainingMatrix(self, remaining_rows, remaining_cols):
-        matrix = []
-        for rowID in remaining_rows:
-            row = []
-            for colID in remaining_cols:
-                row.append(self.matrix[rowID][colID])
-            matrix.append(row)
-        return matrix
-
-    def getRemainingNames(self, remaining, r_c=("R", "C")):
-        names = []
-        if r_c == "R":
-            for id in remaining:
-                names.append(self.row_action_names[id])
-        else:
-            for id in remaining:
-                names.append(self.col_action_names[id])
-        return names
 
     def iesds(self, verbose=False):
         '''Apply IESDS (Iteratrive Elimination) on the current StrategicGame and returns the resulting
@@ -154,6 +207,8 @@ class StrategicGame:
         iesds_matrix.assign_row_actions_names(self.getRemainingNames(remaining_rows, "R"))
         iesds_matrix.assign_col_actions_names(self.getRemainingNames(remaining_cols, "C"))
         return iesds_matrix
+
+# __________________________ Code segments for IENBR ____________________________________________________
 
     def bestResponseToAction(self, matrix, actionID, r_c=("R", "C")):
         if r_c == "R":
@@ -215,18 +270,41 @@ class StrategicGame:
         ienbr_matrix.assign_col_actions_names(self.getRemainingNames(remaining_cols, "C"))
         return ienbr_matrix
 
+# ___________________ Nash Profiles _____________________________________________________________________
+#     def best_responseTo(self, opponentAction, r_c=("R", "C")):
+#         #if other player plays action a1 what is the best response?
+#         matrix = np.array(self.matrix)
+#         if r_c == "R":
+#             best_response = np.where(matrix[opponentAction,:,1] == np.max(matrix[opponentAction,:,1]))[0][0]
+#         elif r_c == "C":
+#             #print(np.where(matrix[:,opponentAction,0] == np.max(matrix[:,opponentAction,0]))[0][0])
+#             best_response = np.where(matrix[:,opponentAction,0] == np.max(matrix[:,opponentAction,0]))[0][0]
+#         else:
+#             raise Exception("Select whether the opponent is Row R or Column C.")
+#         return best_response
+
+    def is_nash_equilibrium(self, rowID, colID):
+        matrix = np.array(self.matrix)
+        rowBest = not(any(matrix[:,colID,0] > matrix[rowID,colID,0]))
+        colBest = not(any(matrix[rowID,:,1] > matrix[rowID,colID,1]))
+
+        return (rowBest and colBest)
 
     def find_Nash_profiles(self):
         '''return the list of Nash equilibria, as a list of row action /
            column action pairs (aidr, aidc).'''
-        pass
+        nash_idPairs = []
 
-    def find_dominant_strategy_profiles(self):
-        # returns a list of dominant profiles as a list of row action/ column action ID pairs
-        # a profile is a dominant profile if every player's action is a (strongly) dominant strategy
-        pass
+        all_combinations = list(list(zip(np.arange(0,self.n_action_rows), element)) for element
+                                in product(np.arange(0,self.n_action_cols), repeat = self.n_action_rows))
+        combos = list(set([item for sublist in all_combinations for item in sublist]))
 
+        for combo in combos:
+            if self.is_nash_equilibrium(combo[0], combo[1]):
+                nash_idPairs.append((combo[0], combo[1]))
+        return nash_idPairs
 
+# ____________ MAIN with example class instantiations ___________________________________________________
 
 def main():
     m0 = StrategicGame([[(10, 10), (0, 12)], [(12, 0), (1, 1)]])
@@ -258,14 +336,29 @@ def main():
     m4 = StrategicGame([[(1, 4), (2, 4)],
                         [(1, 10), (4, 0)],
                         [(0, 10), (8, 11)]])
+
+    print(m4)
+
     for m in [m0, m1, m2, m3, m4]:
         print("Nash equilibria:", m.find_Nash_profiles())
 
-    m5 = StrategicGame([[(2,1), (0,0)],
-                        [(0,1),(2,0)],
-                        [(1,1),(1,2)]])
+    # print("\n==========================================\n")
+    #
+    # m5 = StrategicGame([[(2,1), (0,0)],
+    #                     [(0,1),(2,0)],
+    #                     [(1,1),(1,2)]])
+    # print(f"Before IENBR\n{m}")
+    # print(f"After IENBR\n{m5.ienbr(verbose=True)}")
+    # print(f"My game is still unchanged \n{m}")
 
-    print(m5.ienbr(verbose=True))
+    # print("\n==========================================\n")
+    #
+    # print("Strongly dominant Strategy profiles")
+    # g = StrategicGame([[(1, 5)],
+    #                    [(0, 5)]])
+    # print(g)
+    # print(g.find_dominant_strategy_profiles())
+
 
 
 if __name__ == '__main__':
