@@ -160,23 +160,23 @@ class StrategicGame:
     def removeDominatedRowsCols(self, matrix, verbose=False):
         dominated_rows = []
 
-        for combo in permutations(np.arange(0, matrix.shape[0]), 2):
-            if self.strictlydominates(matrix[combo[0], :, 0], matrix[combo[1], :, 0]):
+        for row_combos in permutations(np.arange(0, matrix.shape[0]), 2):
+            if self.strictlydominates(matrix[row_combos[0], :, 0], matrix[row_combos[1], :, 0]):
                 if verbose:
-                    print("Removing row ", self.row_action_names[combo[1]],"(strictly dominated by ", self.row_action_names[combo[0]],")." )
-                dominated_rows.append(combo[1])
-        dominated_rows = sorted(dominated_rows, reverse=True)
-        for row in dominated_rows:
+                    print("Removing row ", self.row_action_names[row_combos[1]],"(strictly dominated by ", self.row_action_names[row_combos[0]],")." )
+                dominated_rows.append(row_combos[1])
+
+        for row in sorted(dominated_rows, reverse=True):
             matrix = np.delete(matrix, row, axis=0)
 
         dominated_cols = []
-        for combo in permutations(np.arange(0, matrix.shape[1]), 2):
-            if self.strictlydominates(matrix[:,combo[0],1], matrix[:,combo[1],1]):
+        for col_combos in permutations(np.arange(0, matrix.shape[1]), 2):
+            if self.strictlydominates(matrix[:,col_combos[0],1], matrix[:,col_combos[1],1]):
                 if verbose:
-                    print("Removing column ", self.col_action_names[combo[1]],"(strictly dominated by ", self.col_action_names[combo[0]],")." )
-                dominated_cols.append(combo[1])
-        dominated_cols = sorted(dominated_cols, reverse=True)
-        for col in dominated_cols:
+                    print("Removing column ", self.col_action_names[col_combos[1]],"(strictly dominated by ", self.col_action_names[col_combos[0]],")." )
+                dominated_cols.append(col_combos[1])
+
+        for col in sorted(dominated_cols, reverse=True):
             matrix = np.delete(matrix, col, axis=1)
 
         return (matrix, dominated_rows, dominated_cols)
@@ -186,7 +186,7 @@ class StrategicGame:
         StrategicGame. Leaves the original StrategicGame unchanged.'''
 
         tmp_matrix = np.array(self.matrix)
-
+        print(tmp_matrix)
         tmp_result = self.removeDominatedRowsCols(tmp_matrix, verbose)
         tmp_matrix_new = tmp_result[0]
         dominated_rows = tmp_result[1]
@@ -358,8 +358,6 @@ def main():
     #                    [(0, 5)]])
     # print(g)
     # print(g.find_dominant_strategy_profiles())
-
-
 
 if __name__ == '__main__':
     main()

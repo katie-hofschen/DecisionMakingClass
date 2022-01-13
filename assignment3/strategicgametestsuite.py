@@ -65,19 +65,20 @@ class StrategicGameTestCase(unittest.TestCase):
         giesds = g.iesds()
         self.assertTrue(giesds.get_matrix() == StrategicGame([[(1, 5), (7, 5)]]).get_matrix(), f"Unexpected result with the game\n{g}\n")
 
-    # # IENBR
-    # def ienbr1(self):
-    #     g = StrategicGame([[(2, 1), (0, 0)],
-    #                        [(0, 1), (2, 0)],
-    #                        [(1, 1), (1, 2)]])
-    #     gienbr = g.ienbr()
-    #     self.assertTrue(g.get_matrix() == StrategicGame([[(2, 1), (0, 0)], [(0, 1), (2, 0)], [(1, 1), (1, 2)]]).get_matrix(), f"The original game should be left unchanged; now it is\n{g}.")
-    # def ienbr2(self):
-    #     g = StrategicGame([[(2, 1), (0, 0)],
-    #                        [(0, 1), (2, 0)],
-    #                        [(1, 1), (1, 2)]])
-    #     gienbr = g.ienbr()
-    #     self.assertTrue(gienbr.get_matrix() == StrategicGame([[(2, 1)]]).get_matrix(), f"Unexpected result with the game\n{g}\n")
+    # IENBR
+    def ienbr1(self):
+        g = StrategicGame([[(2, 1), (0, 0)],
+                           [(0, 1), (2, 0)],
+                           [(1, 1), (1, 2)]])
+        gienbr = g.ienbr()
+        self.assertTrue(g.get_matrix() == StrategicGame([[(2, 1), (0, 0)], [(0, 1), (2, 0)], [(1, 1), (1, 2)]]).get_matrix(), f"The original game should be left unchanged; now it is\n{g}.")
+
+    def ienbr2(self):
+        g = StrategicGame([[(2, 1), (0, 0)],
+                           [(0, 1), (2, 0)],
+                           [(1, 1), (1, 2)]])
+        gienbr = g.ienbr()
+        self.assertTrue(gienbr.get_matrix() == StrategicGame([[(2, 1)]]).get_matrix(), f"Unexpected result with the game\n{g}\n")
 
 
 if __name__ == '__main__':
