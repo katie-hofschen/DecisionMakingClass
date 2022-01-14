@@ -274,17 +274,7 @@ class StrategicGame:
         return ienbr_matrix
 
 # ___________________ Nash Profiles _____________________________________________________________________
-#     def best_responseTo(self, opponentAction, r_c=("R", "C")):
-#         #if other player plays action a1 what is the best response?
-#         matrix = np.array(self.matrix)
-#         if r_c == "R":
-#             best_response = np.where(matrix[opponentAction,:,1] == np.max(matrix[opponentAction,:,1]))[0][0]
-#         elif r_c == "C":
-#             #print(np.where(matrix[:,opponentAction,0] == np.max(matrix[:,opponentAction,0]))[0][0])
-#             best_response = np.where(matrix[:,opponentAction,0] == np.max(matrix[:,opponentAction,0]))[0][0]
-#         else:
-#             raise Exception("Select whether the opponent is Row R or Column C.")
-#         return best_response
+
 
     def is_nash_equilibrium(self, rowID, colID):
         matrix = np.array(self.matrix)
