@@ -58,7 +58,7 @@ class CournotDuopolyGame(StrategicGame):
 
 def main():
 
-    cdg = CournotDuopolyGame(range(0, 4), range(0, 4), 10, 20, lambda x, y: 100 - (x + y) ** (1/2))
+    cdg = CournotDuopolyGame(range(0, 5), range(0, 4), 15, 40, lambda x, y: 100 - (x + y) ** (1/2))
     print(cdg)
     print("Nash equilibria and unit price:",
           [((q1, q2), cdg.price_fun(q1, q2)) for (q1, q2) in cdg.find_Nash_profiles()])

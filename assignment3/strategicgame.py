@@ -84,7 +84,8 @@ class StrategicGame:
 
     def strictlydominates(self, a1, a2):
         if len(a1) == len(a2):
-            domCount = np.sum([elemA1 > elemA2 for elemA1, elemA2 in zip(a1,a2)])
+            #using the fact that True = 1 and if sum of True(1) = len(a1) then all elements are larger
+            domCount = np.sum(np.greater(a1,a2))
             if len(a1) == domCount:
                 return True
             else:
@@ -94,9 +95,8 @@ class StrategicGame:
 
     def stronglydominates(self, a1, a2):
         if len(a1) == len(a2):
-            strictdomCount = np.sum([elemA1 > elemA2 for elemA1, elemA2 in zip(a1,a2)])
-            strongdomCount = np.sum([elemA1 >= elemA2 for elemA1, elemA2 in zip(a1,a2)])
-            #Debugging print(len(a1) == domCount, a1, a2)
+            strictdomCount = np.sum(np.greater(a1,a2))
+            strongdomCount = np.sum(np.greater_equal(a1,a2))
             if len(a1) == strongdomCount and strictdomCount > 0:
                 return True
             else:
@@ -159,13 +159,13 @@ class StrategicGame:
 
     def removeDominatedRowsCols(self, matrix, verbose=False):
         dominated_rows = []
-
         for row_combos in permutations(np.arange(0, matrix.shape[0]), 2):
             if self.strictlydominates(matrix[row_combos[0], :, 0], matrix[row_combos[1], :, 0]):
                 if verbose:
-                    print("Removing row ", self.row_action_names[row_combos[1]],"(strictly dominated by ", self.row_action_names[row_combos[0]],")." )
+                    print("Row", self.row_action_names[row_combos[1]],"is dominated by row", self.row_action_names[row_combos[0]] )
                 dominated_rows.append(row_combos[1])
 
+        dominated_rows = list(set(dominated_rows)) #don't remove rows more often that are dominated by more than one other action
         for row in sorted(dominated_rows, reverse=True):
             matrix = np.delete(matrix, row, axis=0)
 
@@ -173,9 +173,10 @@ class StrategicGame:
         for col_combos in permutations(np.arange(0, matrix.shape[1]), 2):
             if self.strictlydominates(matrix[:,col_combos[0],1], matrix[:,col_combos[1],1]):
                 if verbose:
-                    print("Removing column ", self.col_action_names[col_combos[1]],"(strictly dominated by ", self.col_action_names[col_combos[0]],")." )
+                    print("Column", self.col_action_names[col_combos[1]],"is dominated by column", self.col_action_names[col_combos[0]] )
                 dominated_cols.append(col_combos[1])
 
+        dominated_cols = list(set(dominated_cols)) #don't remove columns more often that are dominated by more than one other action
         for col in sorted(dominated_cols, reverse=True):
             matrix = np.delete(matrix, col, axis=1)
 
@@ -185,8 +186,10 @@ class StrategicGame:
         '''Apply IESDS (Iteratrive Elimination) on the current StrategicGame and returns the resulting
         StrategicGame. Leaves the original StrategicGame unchanged.'''
 
+        print("Each dominated row or column is only removed once \n "
+              "no matter how many other actions it is dominated by.")
+
         tmp_matrix = np.array(self.matrix)
-        print(tmp_matrix)
         tmp_result = self.removeDominatedRowsCols(tmp_matrix, verbose)
         tmp_matrix_new = tmp_result[0]
         dominated_rows = tmp_result[1]
@@ -331,7 +334,7 @@ def main():
     m3.assign_row_actions_names(["rock", "paper", "scissors"])
     m3.assign_col_actions_names(["rock", "paper", "scissors"])
 
-    # print(f"Before IESDS\n{m3}")
+    print("\n==========================================\n")
 
     m4 = StrategicGame([[(1, 4), (2, 4)],
                         [(1, 10), (4, 0)],

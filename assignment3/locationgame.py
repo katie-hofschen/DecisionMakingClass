@@ -44,20 +44,23 @@ def main():
     lg1 = LocationGame(5)
     print("\n==========================================\n")
     print(f"Location Game with 5 locations\n{lg1}")
+    print(f"After IESDS \n{lg1.iesds(verbose=True)}")
 
     lg2 = LocationGame(3)
     print("\n==========================================\n")
     print(f"Location Game with 3 locations\n{lg2}")
+    print(f"Nash profiles \n{lg2.find_Nash_profiles()}")
+    print(f"Nash profiles \n{lg2.iesds(verbose=True)}")
 
-    lg3 = LocationGame(28)
-    print("\n==========================================\n")
-    print(f"Before IESDS\n{lg3}")
-    print(f"After IESDS\n{lg3.iesds(verbose=True)}")
-
-    lg4 = LocationGame(187)
-    print("\n==========================================\n")
-    print(f"Before IESDS\n{lg4}")
-    print(f"After IESDS\n{lg4.find_Nash_profiles()}")
+    # lg3 = LocationGame(28)
+    # print("\n==========================================\n")
+    # print(f"Before IESDS\n{lg3}")
+    # print(f"After IESDS\n{lg3.iesds(verbose=True)}")
+    #
+    # lg4 = LocationGame(187)
+    # print("\n==========================================\n")
+    # print(f"Before IESDS\n{lg4}")
+    # print(f"Nash profiles\n{lg4.find_Nash_profiles()}")
 
 
 if __name__ == '__main__':
