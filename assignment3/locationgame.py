@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import permutations
+from itertools import permutations, product
 from assignment3.strategicgame import StrategicGame
 
 class LocationGame(StrategicGame):
@@ -14,6 +14,8 @@ class LocationGame(StrategicGame):
         super().__init__(self.matrix)
 
     def createMatrix(self):
+        # very inefficient for larger number of locations
+
         if self.n_locations <= 0 or type(self.n_locations) != int:
             raise Exception("There must be at least 1 Location and the number of locations must be an integer.")
         else:
@@ -41,16 +43,17 @@ class LocationGame(StrategicGame):
 
 
 def main():
-    lg1 = LocationGame(5)
-    print("\n==========================================\n")
-    print(f"Location Game with 5 locations\n{lg1}")
-    print(f"After IESDS \n{lg1.iesds(verbose=True)}")
+    lg1 = LocationGame(7)
+    print(lg1.iesds(verbose=True))
+    # print("\n==========================================\n")
+    # print(f"Location Game with 5 locations\n{lg1}")
+    # print(f"After IESDS \n{lg1.iesds(verbose=True)}")
 
-    lg2 = LocationGame(3)
-    print("\n==========================================\n")
-    print(f"Location Game with 3 locations\n{lg2}")
-    print(f"Nash profiles \n{lg2.find_Nash_profiles()}")
-    print(f"Nash profiles \n{lg2.iesds(verbose=True)}")
+    # lg2 = LocationGame(3)
+    # print("\n==========================================\n")
+    # print(f"Location Game with 3 locations\n{lg2}")
+    # print(f"Nash profiles \n{lg2.find_Nash_profiles()}")
+    # print(f"Nash profiles \n{lg2.iesds(verbose=True)}")
 
     # lg3 = LocationGame(28)
     # print("\n==========================================\n")
